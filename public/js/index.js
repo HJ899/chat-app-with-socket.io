@@ -1,5 +1,4 @@
 var socket = io();
-var $ = jQuery;
 
 socket.on('connect', function(){
     console.log('Connected to server!');
@@ -10,25 +9,25 @@ socket.on('disconnet', function(){
 })
 
 socket.on('newMessage', function(message){
-    console.log('newMessage', message); 
-    var li = $('<li></li>');
-    li.text(`${message.from}: ${message.text}`);
-    $('#messages').append(li);
+    var formattedTime = moment(message.createdAt).format('h:mm a');
+    var template = $('#message-template').html();
+    var html = Mustache.render(template, {message,formattedTime});
+
+    $('#messages').append(html);
 });
 
 socket.on('newLocationMessage', function(message){
-    var li = $('<li></li>');
-    var a = $('<a target="_blank">My current location</a>');
+    var formattedTime = moment(message.createdAt).format('h:mm a');
+    var template = $('#message-location-template').html();
+    var html = Mustache.render(template, {message,formattedTime});
 
-    li.text(`${message.from}: `);
-    a.attr('href', message.url);
-    li.append(a);
-    $('#messages').append(li);
+    $('#messages').append(html);
 })
 
 $('#message-form').on('submit', function(e){
     e.preventDefault();
     var textField = $('#message-form input');
+    if(textField.val() === "") return;
     socket.emit('createMessage', {
         from:'User',
         text:textField.val()
